@@ -74,4 +74,6 @@ All files are written to the repository root (or `--output-dir`). They are suita
 
 ## License
 
-MIT
+Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.
+
+This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without express written permission from the copyright holder. Viewing the code (e.g., on GitHub) does not constitute permission to use it.
