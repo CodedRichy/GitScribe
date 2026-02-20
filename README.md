@@ -51,7 +51,7 @@ python run.py C:\path\to\other\project
 
 ## Where the files go
 
-GitScribe writes the Markdown files **into the repo it analyzed** (the path you passed, or the current folder if you didn’t pass one).
+GitScribe writes all Markdown files into a **`docs`** folder inside the repo it analyzed. If the repo is `C:\GitPulse`, the files go in `C:\GitPulse\docs\`.
 
 | File | What it is |
 |------|------------|
@@ -73,14 +73,14 @@ python run.py . --with-summary
 | Option | Meaning |
 |--------|--------|
 | `--with-summary` | Also create SUMMARY.md |
-| `-o FOLDER` | Write all files into `FOLDER` instead of the repo root |
+| `-o FOLDER` | Write files into `FOLDER` instead of `docs` |
 | `--max-commits 2000` | Limit how many commits to scan (default 5000) |
 | `-q` | Less output while running |
 
-Example:
+Example (custom output folder):
 
 ```bash
-python ..\GitScribe\run.py . --with-summary -o .\docs
+python ..\GitScribe\run.py . --with-summary -o .\my-docs
 ```
 
 ---

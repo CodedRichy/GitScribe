@@ -31,7 +31,7 @@ def main() -> int:
         description="GitScribe — History-driven documentation from Git repository analysis.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Outputs (Markdown, written to the repository or --output-dir):
+Outputs (Markdown, written to docs/ inside the repo, or --output-dir):
   CHANGELOG.md    From tags, commit history, and detected breaking changes
   ARCHITECTURE.md Module structure and how it evolved over time
   DEVELOPMENT.md  Timeline of major features, refactors, and decisions
@@ -49,7 +49,7 @@ Outputs (Markdown, written to the repository or --output-dir):
         "--output-dir",
         type=str,
         default=None,
-        help="Directory to write Markdown files (default: repository root)",
+        help="Directory to write Markdown files (default: repo/docs)",
     )
     parser.add_argument(
         "--with-summary",
@@ -77,7 +77,7 @@ Outputs (Markdown, written to the repository or --output-dir):
     args = parser.parse_args()
 
     repo_path = Path(args.repo_path).resolve()
-    output_dir = Path(args.output_dir).resolve() if args.output_dir else repo_path
+    output_dir = Path(args.output_dir).resolve() if args.output_dir else (repo_path / "docs")
 
     try:
         reader = GitReader(repo_path)
