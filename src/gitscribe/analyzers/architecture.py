@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass, field
-from gitscribe.git_reader import CommitInfo, GitReader CommitInfo, GitReader
+from gitscribe.git_reader import CommitInfo, GitReader
 
 
 @dataclass
