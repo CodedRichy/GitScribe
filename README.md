@@ -1,134 +1,89 @@
 # GitScribe
 
-**History-driven documentation generator** — analyzes a local Git repository by reading its `.git` directory and commit history to produce accurate, history-aware project documentation.
+Generates **CHANGELOG.md**, **ARCHITECTURE.md**, and **DEVELOPMENT.md** from a repo’s Git history. No GitHub, no API — it only reads the local `.git` folder.
 
 ---
 
-## How to use this (simple)
+## What you need
 
-1. **You need:** Python 3.9+ and a folder that is a Git repo (it has a `.git` folder).
-
-2. **One-time setup:** Open a terminal in the GitScribe project folder and run:
-   ```bash
-   pip install GitPython
-   ```
-
-3. **Generate docs:**
-   - **This repo:** Open a terminal in the GitScribe folder and run:
-     ```bash
-     python run.py
-     ```
-   - **Another repo:** Run the same from anywhere, and give the path:
-     ```bash
-     python run.py C:\path\to\your\project
-     ```
-
-4. **What you get:** In the repo you pointed at (or the current folder), GitScribe creates three files:
-   - **CHANGELOG.md** — What changed, by version and commit
-   - **ARCHITECTURE.md** — How the project’s folders/files evolved
-   - **DEVELOPMENT.md** — Timeline of features, refactors, fixes
-
-   To also get **SUMMARY.md** (busiest files and unstable areas), run:
-   ```bash
-   python run.py --with-summary
-   ```
-
-That’s it. No account, no internet, no install of GitScribe itself — just `pip install GitPython` and `python run.py`.
+- **Python 3.9+**
+- A **Git repo** (the folder you want docs for must have a `.git` inside it)
 
 ---
 
-## Quick start (other ways)
+## One-time setup
 
-**Easiest (no install):** from the GitScribe repo folder:
+Install the only dependency (do this once):
 
 ```bash
 pip install GitPython
+```
+
+---
+
+## How to run it
+
+**Option A — You’re in the GitScribe folder**
+
+```bash
 python run.py
 ```
+Analyzes the current folder (must be a Git repo).
 
-This analyzes the current directory (must be a Git repo) and writes `CHANGELOG.md`, `ARCHITECTURE.md`, and `DEVELOPMENT.md` there.
-
-**One-command setup (PowerShell):** creates a venv and runs GitScribe:
-
-```powershell
-.\run.ps1
-.\run.ps1 --with-summary
-.\run.ps1 C:\path\to\other\repo
-```
-
-**Analyze another repo:**
+**Option B — You’re in the project you want docs for (e.g. GitPulse)**
 
 ```bash
-python run.py C:\path\to\repo
-python run.py C:\path\to\repo --with-summary -o C:\path\to\docs
+python ..\GitScribe\run.py .
 ```
-
-## Features
-
-- **Reconstructs project evolution** over time from version control
-- **Identifies major phases**: architectural shifts, breaking changes, refactors
-- **Produces documentation** that reflects what actually happened, not only what the code looks like today
-- **CLI-only**, **offline**, **deterministic** — no GitHub or external APIs; no LLM inventing facts
-
-## Installation (optional)
-
-If you prefer to install the package (Python 3.9+):
+The `.` means “this folder.” Use the path to GitScribe if it’s not one level up, e.g.:
 
 ```bash
-pip install -e .
-gitscribe
-gitscribe /path/to/repo --with-summary
+python C:\Users\rishi\Documents\GitHub\GitScribe\run.py .
 ```
 
-## Usage
+**Option C — You’re in GitScribe and want to analyze another repo**
 
 ```bash
-# Analyze current directory (must be a Git repo)
-python run.py
-# or:  gitscribe
-
-# Another repo
-python run.py /path/to/repo
-# or:  gitscribe /path/to/repo
-
-# Write output to a specific directory
-python run.py -o ./docs
-# or:  gitscribe -o ./docs
-
-# Include SUMMARY.md (high-churn and unstable components)
-python run.py --with-summary
-# or:  gitscribe --with-summary
-
-# Limit commits (default 5000), quiet mode
-python run.py --max-commits 2000 -q
+python run.py C:\path\to\other\project
 ```
 
-## Outputs (Markdown)
+---
 
-| File | Description |
-|------|-------------|
-| **CHANGELOG.md** | Generated from tags, commit history, and detected breaking changes |
-| **ARCHITECTURE.md** | Inferred module/directory structure and how it evolved over time |
-| **DEVELOPMENT.md** | Timeline of major features, refactors, and technical decisions |
-| **SUMMARY.md** | Optional; high-churn files and unstable components (use `--with-summary`) |
+## Where the files go
 
-All files are written to the repository root (or `--output-dir`). They are suitable for real-world projects and emphasize **correctness** and **traceability** (commit SHAs, scopes, and dates).
+GitScribe writes the Markdown files **into the repo it analyzed** (the path you passed, or the current folder if you didn’t pass one).
 
-## How it works
+| File | What it is |
+|------|------------|
+| **CHANGELOG.md** | Changes by version/commit, plus breaking changes |
+| **ARCHITECTURE.md** | How folders and structure changed over time |
+| **DEVELOPMENT.md** | Timeline of features, refactors, fixes |
 
-1. **Git reader** — Reads only the local `.git` directory (no network). Uses [GitPython](https://github.com/gitpython-developers/GitPython) to walk commits, tags, branches, and diffs.
-2. **Analyzers** (deterministic):
-   - **Breaking changes**: Message patterns (e.g. `BREAKING CHANGE`, `feat!:`), plus heuristics (e.g. very large deletions).
-   - **Architecture**: File tree at key revisions (tags + sampled commits); top-level modules and notable structural changes.
-   - **Timeline**: Event types (feature, refactor, fix, release, etc.) from commit message keywords and diff scope.
-   - **Churn**: Per-file and per-directory commit counts and line deltas.
-3. **Generators** — Turn analysis results into Markdown only; no LLM is used to invent content.
+Add **SUMMARY.md** (busiest files, unstable areas) by running with:
 
-## Constraints
+```bash
+python run.py . --with-summary
+```
+(or `python run.py C:\path\to\repo --with-summary`)
 
-- **CLI only** — no graphical UI
-- **Works offline** — no GitHub or other remote APIs
-- **Deterministic** — LLMs may be used only to phrase findings, not to invent facts (this implementation uses no LLM)
+---
+
+## Other options
+
+| Option | Meaning |
+|--------|--------|
+| `--with-summary` | Also create SUMMARY.md |
+| `-o FOLDER` | Write all files into `FOLDER` instead of the repo root |
+| `--max-commits 2000` | Limit how many commits to scan (default 5000) |
+| `-q` | Less output while running |
+
+Example:
+
+```bash
+python ..\GitScribe\run.py . --with-summary -o .\docs
+```
+
+---
 
 ## License
 
