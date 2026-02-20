@@ -2,9 +2,42 @@
 
 **History-driven documentation generator** — analyzes a local Git repository by reading its `.git` directory and commit history to produce accurate, history-aware project documentation.
 
-Documentation is derived **strictly from Git data** (commits, diffs, branches, tags, and file evolution). Git history is the primary source of truth; the tool does not infer intent from source code alone.
+---
 
-## Quick start
+## How to use this (simple)
+
+1. **You need:** Python 3.9+ and a folder that is a Git repo (it has a `.git` folder).
+
+2. **One-time setup:** Open a terminal in the GitScribe project folder and run:
+   ```bash
+   pip install GitPython
+   ```
+
+3. **Generate docs:**
+   - **This repo:** Open a terminal in the GitScribe folder and run:
+     ```bash
+     python run.py
+     ```
+   - **Another repo:** Run the same from anywhere, and give the path:
+     ```bash
+     python run.py C:\path\to\your\project
+     ```
+
+4. **What you get:** In the repo you pointed at (or the current folder), GitScribe creates three files:
+   - **CHANGELOG.md** — What changed, by version and commit
+   - **ARCHITECTURE.md** — How the project’s folders/files evolved
+   - **DEVELOPMENT.md** — Timeline of features, refactors, fixes
+
+   To also get **SUMMARY.md** (busiest files and unstable areas), run:
+   ```bash
+   python run.py --with-summary
+   ```
+
+That’s it. No account, no internet, no install of GitScribe itself — just `pip install GitPython` and `python run.py`.
+
+---
+
+## Quick start (other ways)
 
 **Easiest (no install):** from the GitScribe repo folder:
 
