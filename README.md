@@ -4,6 +4,32 @@
 
 Documentation is derived **strictly from Git data** (commits, diffs, branches, tags, and file evolution). Git history is the primary source of truth; the tool does not infer intent from source code alone.
 
+## Quick start
+
+**Easiest (no install):** from the GitScribe repo folder:
+
+```bash
+pip install GitPython
+python run.py
+```
+
+This analyzes the current directory (must be a Git repo) and writes `CHANGELOG.md`, `ARCHITECTURE.md`, and `DEVELOPMENT.md` there.
+
+**One-command setup (PowerShell):** creates a venv and runs GitScribe:
+
+```powershell
+.\run.ps1
+.\run.ps1 --with-summary
+.\run.ps1 C:\path\to\other\repo
+```
+
+**Analyze another repo:**
+
+```bash
+python run.py C:\path\to\repo
+python run.py C:\path\to\repo --with-summary -o C:\path\to\docs
+```
+
 ## Features
 
 - **Reconstructs project evolution** over time from version control
@@ -11,38 +37,37 @@ Documentation is derived **strictly from Git data** (commits, diffs, branches, t
 - **Produces documentation** that reflects what actually happened, not only what the code looks like today
 - **CLI-only**, **offline**, **deterministic** — no GitHub or external APIs; no LLM inventing facts
 
-## Installation
+## Installation (optional)
 
-Requires Python 3.9+ and a local Git repository.
+If you prefer to install the package (Python 3.9+):
 
 ```bash
-# From the project root
 pip install -e .
-
-# Or install dependency only (run with: python -m gitscribe.cli)
-pip install GitPython>=3.1.40
+gitscribe
+gitscribe /path/to/repo --with-summary
 ```
 
 ## Usage
 
 ```bash
 # Analyze current directory (must be a Git repo)
-gitscribe
+python run.py
+# or:  gitscribe
 
-# Specify repository path
-gitscribe /path/to/repo
+# Another repo
+python run.py /path/to/repo
+# or:  gitscribe /path/to/repo
 
 # Write output to a specific directory
-gitscribe -o ./docs
+python run.py -o ./docs
+# or:  gitscribe -o ./docs
 
-# Also generate SUMMARY.md (high-churn files and unstable components)
-gitscribe --with-summary
+# Include SUMMARY.md (high-churn and unstable components)
+python run.py --with-summary
+# or:  gitscribe --with-summary
 
-# Limit commits analyzed (default 5000)
-gitscribe --max-commits 2000
-
-# Quiet mode
-gitscribe -q
+# Limit commits (default 5000), quiet mode
+python run.py --max-commits 2000 -q
 ```
 
 ## Outputs (Markdown)
