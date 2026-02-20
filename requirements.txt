@@ -1,0 +1,2 @@
+# GitScribe runtime dependency (also in pyproject.toml)
+GitPython>=3.1.40

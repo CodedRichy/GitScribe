@@ -1,0 +1,25 @@
+Metadata-Version: 2.4
+Name: gitscribe
+Version: 0.1.0
+Summary: History-driven documentation generator from Git repository analysis
+Author: GitScribe
+License: MIT
+Keywords: git,documentation,changelog,cli
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Software Development :: Documentation
+Requires-Python: >=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: GitPython>=3.1.40
+Provides-Extra: dev
+Requires-Dist: pytest>=7.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+
+# GitScribe

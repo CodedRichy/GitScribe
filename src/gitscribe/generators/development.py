@@ -4,8 +4,6 @@ Generate DEVELOPMENT.md from the development timeline (features, refactors, deci
 
 from __future__ import annotations
 
-from datetime import datetime
-
 from gitscribe.analyzers.timeline import TimelineEvent
 
 
