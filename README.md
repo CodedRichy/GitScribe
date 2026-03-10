@@ -1,92 +1,168 @@
 # GitScribe
 
-Generates **CHANGELOG.md**, **ARCHITECTURE.md**, and **DEVELOPMENT.md** from a repo’s Git history. No GitHub, no API — it only reads the local `.git` folder.
+## Overview
 
----
+**GitScribe** is a history-driven documentation generator that analyzes your local Git repository to produce professional, high-fidelity development reports. Unlike traditional documentation tools that require manual effort or external API access (like GitHub), GitScribe works directly from your local `.git` folder, transforming commit history, tags, and file trees into structured Markdown documents.
 
-## What you need
+Whether you're looking for an automated changelog, an architecture evolution report, or a high-level timeline of your project's development, GitScribe provides a deep, retrospective look into your codebase's journey.
 
-- **Python 3.9+**
-- A **Git repo** (the folder you want docs for must have a `.git` inside it)
+## Features
 
----
+*   **Automated Changelogs**: Generates comprehensive `CHANGELOG.md` files by grouping changes by tagged versions or commit batches.
+*   **Architecture Evolution**: Produces `ARCHITECTURE.md` reports that track how your project's directory structure and core modules have evolved over time.
+*   **Breaking Change Detection**: Scans commit patterns to identify potential breaking changes that should be communicated to downstream users.
+*   **Development Timeline**: Builds a chronological `DEVELOPMENT.md` that highlights major features, refactorings, and core decisions detected from the Git history.
+*   **Churn & Stability Reports**: (Optional) Analyzes high-traffic files and volatile components in a `SUMMARY.md` to help identify technical debt and high-risk areas.
+*   **Purely Local & Secure**: No external API tokens or internet connectivity required; it operates entirely on your local machine.
 
-## One-time setup
+## Architecture
 
-Install the only dependency (do this once):
+GitScribe follows a modular pipeline designed for analysis and transformation:
+
+*   **Git Reader**: Interfaces with the local repository using `GitPython` to extract raw commit metadata, tag objects, and tree states at specific points in time.
+*   **Analyzers**: Independent processing modules that interpret the raw data to detect patterns:
+    *   *Architecture Evolution*: Analyzes rename/move/delete operations across time.
+    *   *Breaking Change Detector*: Identifies major API shifts based on commit conventions and versioning.
+    *   *Timeline Builder*: Groups delta states into logical development milestones.
+    *   *Churn Calculator*: Computes file volatility and modification frequency.
+*   **Generators**: Mapping layers that take the structured analysis results and format them into clean, GitHub-flavored Markdown documents.
+*   **CLI Orchestrator**: The central entry point that manages the workflow, handles user configuration, and writes the final reports to the filesystem.
+
+## Tech Stack
+
+*   **Language**: Python 3.9+
+*   **Git API**: [GitPython](https://gitpython.readthedocs.io/)
+*   **Linting & Formatting**: [Ruff](https://astral.sh/ruff)
+*   **Build System**: Setuptools / pyproject.toml
+*   **Operating Systems**: Windows (PowerShell support included), macOS, and Linux
+
+## Repository Structure
+
+```text
+/src/gitscribe
+  /analyzers        → Logic for interpreting Git history (churn, architecture, etc.)
+  /generators       → Formatting logic for the various Markdown reports
+  git_reader.py     → Core Git integration and data extraction layer
+  cli.py            → Command-line interface and workflow management
+/docs               → Default output folder for generated documentation
+run.py              → Cross-platform standalone entry point
+run.ps1             → Windows-specific helper script for environment setup
+pyproject.toml      → Project-wide build configuration and dependencies
+```
+
+## Installation
+
+### Prerequisites
+
+*   Python 3.9 or higher.
+*   `git` must be installed and available in your PATH.
+
+### Installation via Pip
+
+For the most streamlined experience, install the package in editable mode:
+
+```bash
+git clone https://github.com/CodedRichy/GitScribe.git
+cd GitScribe
+pip install -e .
+```
+
+### Standalone Usage (No Installation)
+
+Alternatively, just install the runtime dependencies and run the script directly:
 
 ```bash
 pip install GitPython
+python run.py [path_to_repo]
 ```
 
----
+## Usage
 
-## How to run it
+### Analyzing the Current Repository
 
-**Option A — You’re in the GitScribe folder**
+To analyze the repository you are currently in and generate documentation in `./docs/`:
 
 ```bash
 python run.py
 ```
-Analyzes the current folder (must be a Git repo).
 
-**Option B — You’re in the project you want docs for (e.g. GitPulse)**
+### Analyzing another Repository
 
-```bash
-python ..\GitScribe\run.py .
-```
-The `.` means “this folder.” Use the path to GitScribe if it’s not one level up, e.g.:
+Point GitScribe to any folder containing a `.git` directory:
 
 ```bash
-python C:\Users\rishi\Documents\GitHub\GitScribe\run.py .
+python run.py C:\path\to\another-project
 ```
 
-**Option C — You’re in GitScribe and want to analyze another repo**
+### Advanced Options
+
+| Command | Description |
+|:---|:---|
+| `--with-summary` | Also generate `SUMMARY.md` (high-churn and unstable areas). |
+| `-o <dir>` | Specify a custom output directory for the Markdown files. |
+| `--max-commits <n>` | Limit analysis to the most recent `<n>` commits (default: 5000). |
+| `-q`, `--quiet` | Suppress progress messaging. |
+
+**Example:**
+Generate all reports, including a summary, into a custom folder for the last 1000 commits:
 
 ```bash
-python run.py C:\path\to\other\project
+python run.py . --with-summary -o ./project-meta --max-commits 1000
 ```
 
----
+## Configuration
 
-## Where the files go
+GitScribe uses standard CLI arguments for configuration as outlined above. Project-wide linting and development settings are stored in `pyproject.toml`.
 
-GitScribe writes all Markdown files into a **`docs`** folder inside the repo it analyzed. If the repo is `C:\GitPulse`, the files go in `C:\GitPulse\docs\`.
+## Development
 
-| File | What it is |
-|------|------------|
-| **CHANGELOG.md** | Changes by version/commit, plus breaking changes |
-| **ARCHITECTURE.md** | How folders and structure changed over time |
-| **DEVELOPMENT.md** | Timeline of features, refactors, fixes |
-
-Add **SUMMARY.md** (busiest files, unstable areas) by running with:
+Developers can set up a formal development environment with testing and linting tools pre-configured:
 
 ```bash
-python run.py . --with-summary
+pip install -e ".[dev]"
 ```
-(or `python run.py C:\path\to\repo --with-summary`)
 
----
+*   **Linting**: Use Ruff to check for style violations:
+    ```bash
+    ruff check src
+    ```
+*   **Formatting**: Auto-format code with Ruff:
+    ```bash
+    ruff format src
+    ```
 
-## Other options
+## Testing
 
-| Option | Meaning |
-|--------|--------|
-| `--with-summary` | Also create SUMMARY.md |
-| `-o FOLDER` | Write files into `FOLDER` instead of `docs` |
-| `--max-commits 2000` | Limit how many commits to scan (default 5000) |
-| `-q` | Less output while running |
+The project is structured to support `pytest` for unit and integration testing.
 
-Example (custom output folder):
-
+To run tests:
 ```bash
-python ..\GitScribe\run.py . --with-summary -o .\my-docs
+pytest
 ```
+*(Note: Initial test suites are currently under development; mocks for Git repositories are recommended for local testing.)*
 
----
+## Deployment
+
+As a CLI tool, GitScribe is distributed via source or can be packaged as a wheel. In production-like environments, it is recommended to run it via its entry point after installing in a dedicated virtual environment.
+
+## Roadmap
+
+*   [ ] **Conventional Commits Support**: Direct parsing of [Conventional Commits](https://www.conventionalcommits.org/) for more accurate changelogs.
+*   [ ] **Additional Output Formats**: Exporting reports to HTML, PDF, or JSON.
+*   [ ] **In-Memory Analysis**: Support for analyzing remote repositories via temp cloning or in-memory git clones.
+*   [ ] **CI/CD Integration**: Pre-built GitHub Action for automatic documentation updates upon tag creation.
+*   [ ] **Custom Templates**: Integration with Jinja2 for user-defined Markdown report layouts.
+
+## Contributing
+
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/NewAwesomeThing`).
+3.  Ensure code quality with `ruff check .`.
+4.  Submit a Pull Request with a clear description of your changes.
 
 ## License
 
-Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.
+**Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.**
 
-This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without express written permission from the copyright holder. Viewing the code (e.g., on GitHub) does not constitute permission to use it.
+This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without **express written permission** from the copyright holder. Viewing the code does not constitute permission for use.
+
