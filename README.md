@@ -162,7 +162,4 @@ As a CLI tool, GitScribe is distributed via source or can be packaged as a wheel
 
 ## License
 
-**Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.**
-
-This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without **express written permission** from the copyright holder. Viewing the code does not constitute permission for use.
-
+[MIT](LICENSE)
