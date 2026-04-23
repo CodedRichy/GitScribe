@@ -33,80 +33,169 @@ Dynamic: license-file
 
 # GitScribe
 
-**History-driven documentation generator** — analyzes a local Git repository by reading its `.git` directory and commit history to produce accurate, history-aware project documentation.
+## Overview
 
-Documentation is derived **strictly from Git data** (commits, diffs, branches, tags, and file evolution). Git history is the primary source of truth; the tool does not infer intent from source code alone.
+**GitScribe** is a history-driven documentation generator that analyzes your local Git repository to produce professional, high-fidelity development reports. Unlike traditional documentation tools that require manual effort or external API access (like GitHub), GitScribe works directly from your local `.git` folder, transforming commit history, tags, and file trees into structured Markdown documents.
+
+Whether you're looking for an automated changelog, an architecture evolution report, or a high-level timeline of your project's development, GitScribe provides a deep, retrospective look into your codebase's journey.
 
 ## Features
 
-- **Reconstructs project evolution** over time from version control
-- **Identifies major phases**: architectural shifts, breaking changes, refactors
-- **Produces documentation** that reflects what actually happened, not only what the code looks like today
-- **CLI-only**, **offline**, **deterministic** — no GitHub or external APIs; no LLM inventing facts
+*   **Automated Changelogs**: Generates comprehensive `CHANGELOG.md` files by grouping changes by tagged versions or commit batches.
+*   **Architecture Evolution**: Produces `ARCHITECTURE.md` reports that track how your project's directory structure and core modules have evolved over time.
+*   **Breaking Change Detection**: Scans commit patterns to identify potential breaking changes that should be communicated to downstream users.
+*   **Development Timeline**: Builds a chronological `DEVELOPMENT.md` that highlights major features, refactorings, and core decisions detected from the Git history.
+*   **Churn & Stability Reports**: (Optional) Analyzes high-traffic files and volatile components in a `SUMMARY.md` to help identify technical debt and high-risk areas.
+*   **Purely Local & Secure**: No external API tokens or internet connectivity required; it operates entirely on your local machine.
+
+## Architecture
+
+GitScribe follows a modular pipeline designed for analysis and transformation:
+
+*   **Git Reader**: Interfaces with the local repository using `GitPython` to extract raw commit metadata, tag objects, and tree states at specific points in time.
+*   **Analyzers**: Independent processing modules that interpret the raw data to detect patterns:
+    *   *Architecture Evolution*: Analyzes rename/move/delete operations across time.
+    *   *Breaking Change Detector*: Identifies major API shifts based on commit conventions and versioning.
+    *   *Timeline Builder*: Groups delta states into logical development milestones.
+    *   *Churn Calculator*: Computes file volatility and modification frequency.
+*   **Generators**: Mapping layers that take the structured analysis results and format them into clean, GitHub-flavored Markdown documents.
+*   **CLI Orchestrator**: The central entry point that manages the workflow, handles user configuration, and writes the final reports to the filesystem.
+
+## Tech Stack
+
+*   **Language**: Python 3.9+
+*   **Git API**: [GitPython](https://gitpython.readthedocs.io/)
+*   **Linting & Formatting**: [Ruff](https://astral.sh/ruff)
+*   **Build System**: Setuptools / pyproject.toml
+*   **Operating Systems**: Windows (PowerShell support included), macOS, and Linux
+
+## Repository Structure
+
+```text
+/src/gitscribe
+  /analyzers        → Logic for interpreting Git history (churn, architecture, etc.)
+  /generators       → Formatting logic for the various Markdown reports
+  git_reader.py     → Core Git integration and data extraction layer
+  cli.py            → Command-line interface and workflow management
+/docs               → Default output folder for generated documentation
+run.py              → Cross-platform standalone entry point
+run.ps1             → Windows-specific helper script for environment setup
+pyproject.toml      → Project-wide build configuration and dependencies
+```
 
 ## Installation
 
-Requires Python 3.9+ and a local Git repository.
+### Prerequisites
+
+*   Python 3.9 or higher.
+*   `git` must be installed and available in your PATH.
+
+### Installation via Pip
+
+For the most streamlined experience, install the package in editable mode:
 
 ```bash
-# From the project root
+git clone https://github.com/CodedRichy/GitScribe.git
+cd GitScribe
 pip install -e .
+```
 
-# Or install dependency only (run with: python -m gitscribe.cli)
-pip install GitPython>=3.1.40
+### Standalone Usage (No Installation)
+
+Alternatively, just install the runtime dependencies and run the script directly:
+
+```bash
+pip install GitPython
+python run.py [path_to_repo]
 ```
 
 ## Usage
 
+### Analyzing the Current Repository
+
+To analyze the repository you are currently in and generate documentation in `./docs/`:
+
 ```bash
-# Analyze current directory (must be a Git repo)
-gitscribe
-
-# Specify repository path
-gitscribe /path/to/repo
-
-# Write output to a specific directory
-gitscribe -o ./docs
-
-# Also generate SUMMARY.md (high-churn files and unstable components)
-gitscribe --with-summary
-
-# Limit commits analyzed (default 5000)
-gitscribe --max-commits 2000
-
-# Quiet mode
-gitscribe -q
+python run.py
 ```
 
-## Outputs (Markdown)
+### Analyzing another Repository
 
-| File | Description |
-|------|-------------|
-| **CHANGELOG.md** | Generated from tags, commit history, and detected breaking changes |
-| **ARCHITECTURE.md** | Inferred module/directory structure and how it evolved over time |
-| **DEVELOPMENT.md** | Timeline of major features, refactors, and technical decisions |
-| **SUMMARY.md** | Optional; high-churn files and unstable components (use `--with-summary`) |
+Point GitScribe to any folder containing a `.git` directory:
 
-All files are written to the repository root (or `--output-dir`). They are suitable for real-world projects and emphasize **correctness** and **traceability** (commit SHAs, scopes, and dates).
+```bash
+python run.py C:\path\to\another-project
+```
 
-## How it works
+### Advanced Options
 
-1. **Git reader** — Reads only the local `.git` directory (no network). Uses [GitPython](https://github.com/gitpython-developers/GitPython) to walk commits, tags, branches, and diffs.
-2. **Analyzers** (deterministic):
-   - **Breaking changes**: Message patterns (e.g. `BREAKING CHANGE`, `feat!:`), plus heuristics (e.g. very large deletions).
-   - **Architecture**: File tree at key revisions (tags + sampled commits); top-level modules and notable structural changes.
-   - **Timeline**: Event types (feature, refactor, fix, release, etc.) from commit message keywords and diff scope.
-   - **Churn**: Per-file and per-directory commit counts and line deltas.
-3. **Generators** — Turn analysis results into Markdown only; no LLM is used to invent content.
+| Command | Description |
+|:---|:---|
+| `--with-summary` | Also generate `SUMMARY.md` (high-churn and unstable areas). |
+| `-o <dir>` | Specify a custom output directory for the Markdown files. |
+| `--max-commits <n>` | Limit analysis to the most recent `<n>` commits (default: 5000). |
+| `-q`, `--quiet` | Suppress progress messaging. |
 
-## Constraints
+**Example:**
+Generate all reports, including a summary, into a custom folder for the last 1000 commits:
 
-- **CLI only** — no graphical UI
-- **Works offline** — no GitHub or other remote APIs
-- **Deterministic** — LLMs may be used only to phrase findings, not to invent facts (this implementation uses no LLM)
+```bash
+python run.py . --with-summary -o ./project-meta --max-commits 1000
+```
+
+## Configuration
+
+GitScribe uses standard CLI arguments for configuration as outlined above. Project-wide linting and development settings are stored in `pyproject.toml`.
+
+## Development
+
+Developers can set up a formal development environment with testing and linting tools pre-configured:
+
+```bash
+pip install -e ".[dev]"
+```
+
+*   **Linting**: Use Ruff to check for style violations:
+    ```bash
+    ruff check src
+    ```
+*   **Formatting**: Auto-format code with Ruff:
+    ```bash
+    ruff format src
+    ```
+
+## Testing
+
+The project is structured to support `pytest` for unit and integration testing.
+
+To run tests:
+```bash
+pytest
+```
+*(Note: Initial test suites are currently under development; mocks for Git repositories are recommended for local testing.)*
+
+## Deployment
+
+As a CLI tool, GitScribe is distributed via source or can be packaged as a wheel. In production-like environments, it is recommended to run it via its entry point after installing in a dedicated virtual environment.
+
+## Roadmap
+
+*   [ ] **Conventional Commits Support**: Direct parsing of [Conventional Commits](https://www.conventionalcommits.org/) for more accurate changelogs.
+*   [ ] **Additional Output Formats**: Exporting reports to HTML, PDF, or JSON.
+*   [ ] **In-Memory Analysis**: Support for analyzing remote repositories via temp cloning or in-memory git clones.
+*   [ ] **CI/CD Integration**: Pre-built GitHub Action for automatic documentation updates upon tag creation.
+*   [ ] **Custom Templates**: Integration with Jinja2 for user-defined Markdown report layouts.
+
+## Contributing
+
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/NewAwesomeThing`).
+3.  Ensure code quality with `ruff check .`.
+4.  Submit a Pull Request with a clear description of your changes.
 
 ## License
 
-Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.
+**Copyright (c) 2025 Rishi Praseeth Krishnan. All rights reserved.**
 
-This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without express written permission from the copyright holder. Viewing the code (e.g., on GitHub) does not constitute permission to use it.
+This repository and its source code are made visible for viewing and reference only. No license is granted to use, copy, modify, distribute, or create derivative works from this software. You may not use this code in your own projects, products, or services without **express written permission** from the copyright holder. Viewing the code does not constitute permission for use.
+
